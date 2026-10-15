@@ -4,6 +4,7 @@ description: "How to actually apply DL to quant research?"
 date: "2026-09-10"
 tags: ["Deep learning", "Attention", "Statistical Arbitrage"]
 featured: true
+cover: "/images/writing/attention-factors/pic1.png"
 authors: "EL Epstein et al."
 year: 2017
 source: "https://arxiv.org/abs/1706.03762"
@@ -71,6 +72,7 @@ computational graph.
 
 The architecture achieves this through several smoothly connected, differentiable modules:
 
+
 * **Attention-Based Factor Weights:** Instead of relying on non-differentiable heuristic sorting or static PCA eigenvector extraction, the factor portfolio weights 
 $\omega_{t-1}^F$ are generated through a scaled dot-product attention mechanism. Firm characteristics are first mapped to embeddings ${X}_{t-1} = X_{t-1} W^K$, 
 and then attended to by learnable query vectors $Q$ representing latent factors. The weights are normalized using a row-wise Softmax function:
@@ -80,6 +82,9 @@ $$\omega_{t-1}^F = \text{Softmax}\left(\frac{Q {X}_{t-1}^T}{\sqrt{d}}\right)$$
 
 
 This operation is entirely smooth and allows gradients to flow directly back to the underlying firm characteristics.
+
+
+![](/images/writing/attention-factors/pic1.png)
 
 
 * **LongConv Sequence Modeling:** The extracted residual returns are fed into a LongConv sequence model to predict arbitrage weights: 
