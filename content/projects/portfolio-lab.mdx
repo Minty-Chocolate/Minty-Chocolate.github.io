@@ -1,0 +1,54 @@
+---
+title: "Portfolio construction lab"
+description: "A reproducible sandbox for studying allocation, covariance estimation, and the cost of rebalancing."
+date: "2026-09-18"
+tags: ["Python", "Optimization", "Portfolio theory"]
+featured: true
+cover: "/images/allocation.svg"
+coverAlt: "Illustrative portfolio construction lab research diagram"
+---
+
+## The question
+
+How much does an allocation change when our estimate of risk changes? This illustrative project compares equal weighting, minimum variance, and a simple risk-budget approach using synthetic returns.
+
+<Callout>
+  Independent demonstration project. Results below describe a proposed
+  experiment, not investment advice or a claim of live performance.
+</Callout>
+
+## A small, transparent model
+
+For portfolio weights $w$ and covariance estimate $\Sigma$, the minimum-variance problem is:
+
+$$
+\min_w \; w^\top \Sigma w \quad \text{subject to} \quad \mathbf{1}^\top w = 1, \; w \geq 0.
+$$
+
+```python
+import numpy as np
+
+rng = np.random.default_rng(42)
+returns = rng.normal(0, 0.01, size=(252, 4))
+covariance = np.cov(returns, rowvar=False)
+weights = np.full(4, 0.25)
+portfolio_risk = np.sqrt(weights @ covariance @ weights)
+```
+
+![Illustrative allocation weights across four synthetic assets](/images/allocation.svg)
+
+## Experiment design
+
+| Component  | Choice                  | Reason                          |
+| ---------- | ----------------------- | ------------------------------- |
+| Data       | Synthetic daily returns | Fully reproducible              |
+| Validation | Rolling windows         | Avoid future information        |
+| Friction   | Explicit turnover cost  | Compare implementable decisions |
+
+## What I would examine next
+
+- Sensitivity to the covariance lookback window.
+- Stability under shrinkage and concentration constraints.
+- The gap between an elegant objective and robust decisions.
+
+The notebook is a placeholder concept for this portfolio. Add your repository and actual results when you replace this entry.

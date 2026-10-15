@@ -4,14 +4,24 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "next": "16.4.0",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "@mdx-js/mdx": "3.1.1",
+    "gray-matter": "4.0.3",
+    "remark-gfm": "4.0.1",
+    "remark-math": "6.0.0",
+    "rehype-katex": "7.0.1",
+    "rehype-pretty-code": "0.14.5",
+    "katex": "0.19.0",
+    "geist": "1.7.2",
+    "@tailwindcss/postcss": "4.3.3"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
@@ -22,5 +32,8 @@
     "eslint-config-next": "16.4.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=22.12.0"
   }
 }

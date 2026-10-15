@@ -1,0 +1,78 @@
+---
+title: "Industry Trend & Reversal"
+description: "Also, a little bit of observations on timing? "
+date: "2026-06-06"
+tags: ["Finance", "Trading"]
+featured: true
+cover: "/images/writing/industry-trend-reversal/pic1.png"
+coverAlt: "Line chart comparing industry trend and reversal strategy performance from 2010 onward"
+---
+
+## The Issue with Timing
+
+In the framework of the Barra factor model, standard risk factors for equity cross-sectional strategies typically comprise Market, Industry, and Style. Portfolio 
+managers (PMs) conventionally seek neutral exposure to these risk factors to isolate and maximize pure alpha.
+
+In practice, however, the concept of timing—whether framed as Market Timing, Industry Timing, or Style/Factor Timing—has never ceased to captivate both academia 
+and practitioners. Yet timing is widely castigated as an investment sin—most notably by Cliff Asness, albeit primarily directed at style timing. The case for factor 
+timing has been further undermined by a deluge of underwhelming research. Much of the literature suffers from three pervasive pitfalls: lacking clear economic 
+intuition, relying on ad-hoc discretion rather than systematic discipline, or suffering from severe in-sample overfitting given the scarcity of independent 
+macro/market cycles.
+
+Perhaps the most formidable headwind, however, is the benchmark itself. Beating—or even adding a viable overlay to—a simple Buy & Hold strategy has proven
+exceptionally difficult, particularly against the backdrop of the historical bull market run that defined the post-2010 era.
+
+## The Underlying Driving Force
+
+
+Despite these hurdles, timing is far from a dead end. To begin with, style factors vary widely in effective horizons and encompass disparate underlying mechanisms, 
+making style timing exceptionally complex—a difficulty further underscored by recent literature employing the latest shiny ML methods to tame the “factor zoo.” 
+Market timing remains equally intriguing, though empirical results are mixed: fundamental signals offer limited predictive power even over longer horizons, 
+while flow data, though highly informative, is largely proprietary and difficult to source.
+
+Industry timing presents its own dynamics. While pure cross-sectional alpha within industries is scarce, institutional flows heavily dictate cross-industry 
+performance—pricing in earnings revisions and multiple re-ratings much like broader macro asset classes. Furthermore, discretionary hedge funds that bypass 
+rigid cross-industry market neutrality to express thematic industry tilts often generate meaningful divergence in both excess returns and risk relative to 
+their purely sector-neutral peers. In an increasingly crowded market dominated by macro themes like AI, industry timing emerges as a compelling avenue: 
+it provides aggregated exposure, a broader effective opportunity set, and deep liquidity.
+
+
+# Strategy Backtests
+
+I recently come upon a strategy that may be actually useful. The strategy outperforms the benchmark unlike most. However, there are discretionary selections as to 
+what are admitted into the universe and how to construct the signal; I also picked one of the most promising results, so it is not entirely overfitting-free. 
+
+The universe selection is the most suspicious of overfitting. To convince myself of that it is actually a real phenomenon, I conducted leave-one-out on the selected universe. 
+The faintly shaded lines are what would the strategy cumulative returns be if a particular underlying instrument is dropped. The blue line is a sort of "synthesis" 
+(let's call it that) of the signals from all the leave-one-out strategies. The cyan line is the SPY cumulative returns. The red line is the strategy cumulative returns.
+It seems that either the universe is working in locksteps since the strategy are better than leave-on-out versions. 
+
+![](/images/writing/industry-trend-reversal/pic1.png)
+
+It also matters to analyze if it is just market exposure with more leverage, or just a timed market exposure, since the portfolio will adjust notional and leverage 
+through time. Regression results show that the alpha is there when taking out market component, not so much when taking out both market and timed market component, 
+in terms of t stats. But the magnitude of alpha is very similar. In sample results show that combining them with benchmark in an optimal fashion can boost sharpe
+from ~0.94 to ~1.1, which is a modest boost. According to sum-of-squares formula for Sharpe, $$SR^2_{\text{total}} = \sum SR^2_i$$, the increase $1-0.94^2/1.1^2$ is 
+approximately 25%. The return is a more interesting figure here. But given that the strategy makes concentrated bets, it may appeal to retail investors (It is designed
+as a CTA-style low-frequency strategy).
+
+
+![](/images/writing/industry-trend-reversal/pic2.png)
+
+
+
+## Maybe This Works?
+
+
+Maybe the strategy is working, or, it could be that I'm good at overfitting and tuning. But whatever the case, it should just be taken as proof-of-concept. 
+This strategy is not for hedge funds, since they operate on a much higher frequency. While it may be useful for small investors with longer horizons looking 
+to tune their leverage and fare than the index. I am also not sure that the phenomenon I discovered is unfortunately also a product of overfitting or 
+manual rules. Like all strategies, the only way to tell if it works is to continuously moniter the performance.
+
+
+> References:\
+> [1] The Siren Song of Factor Timing. Clifford S. Asness\
+> [2] How Much Information Is Required to Time the Market? Rongju Zhang, Henry LH Wong
+
+
+
