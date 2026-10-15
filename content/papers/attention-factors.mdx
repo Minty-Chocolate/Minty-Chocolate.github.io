@@ -1,6 +1,6 @@
 ---
 title: "Attention Factors for Statistical Arbitrage"
-description: "How to enhance stat arb strategies?"
+description: "How to actually apply DL to quant research?"
 date: "2026-09-10"
 tags: ["Deep learning", "Attention", "Statistical Arbitrage"]
 featured: true
@@ -9,23 +9,25 @@ year: 2017
 source: "https://arxiv.org/abs/1706.03762"
 ---
 
-## The core idea
+## Paper Review: Executive Summary & Thesis
 
-# Paper Review: Attention Factors for Statistical Arbitrage
+Applying deep learning to systematic statistical arbitrage often degrades into an unconstrained "black-box price prediction" exercise that 
+ignores decades of structural quantitative finance. *Attention Factors for Statistical Arbitrage* stands out because it respects structural discipline: 
+instead of using raw neural nets to predict unconstrained price changes, it reformulates the classical Barra multi-factor risk architecture via a 
+self-attention mechanism.
 
-## 1. Executive Summary & Thesis
-
-Applying deep learning to systematic statistical arbitrage (StatArb) often degrades into an unconstrained "black-box price prediction" exercise that ignores decades of structural quantitative finance. *Attention Factors for Statistical Arbitrage* stands out because it respects structural discipline: instead of using raw neural nets to predict unconstrained price changes, it reformulates the classical **Barra multi-factor risk architecture** via a self-attention mechanism.
-
-The paper offers a compelling mathematical bridge: it casts factor portfolio construction and systematic residualization as a unified dual optimization problem solved end-to-end. While the empirical PnL profiles illustrate familiar macro headwinds (diminishing post-2010 alpha and sharp 2020 drawdowns), the methodological innovation of learning dynamic linear factor spaces via transformers sets a solid blueprint for modern equity market-neutral pipelines.
+The paper offers a compelling mathematical bridge: it casts factor portfolio construction and systematic residualization as a unified dual optimization 
+problem solved end-to-end. While the empirical PnL profiles illustrate familiar macro headwinds, the methodological innovation of learning dynamic linear 
+factor spaces via transformers sets a solid blueprint for modern equity market-neutral pipelines.
 
 ---
 
-## 2. Mathematical Framework: Modernizing the Barra Paradigm
+## Mathematical Framework: Modernizing the Barra Paradigm
 
 ### The Classical Structural Baseline
 
-In standard cross-sectional risk modeling (e.g., Barra), asset returns $r_t \in \mathbb{R}^N$ decompose into systematic factor risk and idiosyncratic residual returns:
+In standard cross-sectional risk modeling (e.g., Barra), asset returns $r_t \in \mathbb{R}^N$ decompose into systematic factor risk and idiosyncratic 
+residual returns:
 
 $$r_t = B_t f_t + \epsilon_t$$
 
@@ -35,11 +37,12 @@ where:
 * $f_t \in \mathbb{R}^K$ is the vector of unobserved factor returns.
 * $\epsilon_t \in \mathbb{R}^N$ represents idiosyncratic residuals intended for mean-reverting StatArb capture (e.g., via OU processes).
 
-Under ordinary least squares (OLS) cross-sectional regression, assuming asset weights or generalized least squares weighting matrix $W_t \in \mathbb{R}^{N \times N}$, the estimated factor return is:
+Under ordinary least squares (OLS) cross-sectional regression, assuming asset weights or generalized least squares weighting matrix $W_t \in \mathbb{R}^{N \times N}$, 
+the estimated factor return is:
 
-$$\hat{f}_t = (B_t^\top W_t B_t)^{-1} B_t^\top W_t r_t = F_t^\top r_t$$
+$$f_t = (B_t^\top W_t B_t)^{-1} B_t^\top W_t r_t = F_t^\top r_t$$
 
-Here, $F_t \in \mathbb{R}^{N \times K}$ denotes the **factor-mimicking portfolio weights**.
+Here, $F_t \in \mathbb{R}^{N \times K}$ denotes the factor-mimicking portfolio weights.
 
 ### The Exposure-Weight Duality & The Residualizer Matrix
 
@@ -53,100 +56,63 @@ Consequently, the projection (hat) matrix that maps total returns to systematic 
 
 $$P_t = B_t (B_t^\top B_t)^{-1} B_t^\top = B_t F_t^\top \quad \text{(when orthogonalized)}$$
 
-The idiosyncratic returns are isolated directly using the **orthogonal residualizer matrix** $M_t$:
+The idiosyncratic returns are isolated directly using the orthogonal residualizer matrix $M_t$:
 
-$$\hat{\epsilon}_t = (I_N - P_t) r_t = M_t r_t$$
+$$\epsilon_t = (I_N - P_t) r_t = M_t r_t$$
 
-where $M_t \in \mathbb{R}^{N \times N}$ satisfies idempotency ($M_t^2 = M_t$) and projectivity ($M_t B_t = 0$).
+where $M_t \in \mathbb{R}^{N \times N}$ satisfies idempotency ($M_t^2 = M_t$) and projectivity ($M_t B_t = 0$). In practice, the inversion is not unique,
+so a ridge penalty is enacted.
 
-### How the Attention Mechanism Fits In
 
-Rather than hand-engineering static style factors (value, size, momentum) or running rolling PCA (which assumes static linear subspaces and is prone to lookahead/lag bias), the authors employ an **Attention Transformer**:
+## End-to-End Differentiability
 
-* **Keys and Queries** project cross-sectional stock characteristics across time to capture pairwise dynamic cross-asset dependencies.
-* The resulting attention weights yield a non-linear, time-varying factor weight mapping $F_t(\cdot)$.
-* Orthogonalization layers ensure the mathematical rank constraints and factor mimicry conditions ($B^\top F = I_K$) hold strictly, directly generating $M_t$ end-to-end.
+The core engineering achievement of the framework is replacing the traditional, disjointed two-step statistical arbitrage pipeline with a fully differentiable 
+computational graph. 
 
-In essence, attention acts as an **endogenous, dynamic subspace estimator**, continuously realigning the orthogonal null-space where mean-reversion lives.
+The architecture achieves this through several smoothly connected, differentiable modules:
 
----
+* **Attention-Based Factor Weights:** Instead of relying on non-differentiable heuristic sorting or static PCA eigenvector extraction, the factor portfolio weights 
+$\omega_{t-1}^F$ are generated through a scaled dot-product attention mechanism. Firm characteristics are first mapped to embeddings ${X}_{t-1} = X_{t-1} W^K$, 
+and then attended to by learnable query vectors $Q$ representing latent factors. The weights are normalized using a row-wise Softmax function:
 
-## 3. Critical Breakdown of the Empirical Results
 
-### The Missing CumLogReturn & Visual Compounding Bias
+$$\omega_{t-1}^F = \text{Softmax}\left(\frac{Q {X}_{t-1}^T}{\sqrt{d}}\right)$$
 
-A significant methodological reporting issue in the paper's performance exhibits is the choice of **cumulative arithmetic returns** rather than **cumulative logarithmic returns** ($\sum \log(1 + R)$) or standard equity log-wealth curves:
 
-$$\text{Wealth}_T = \prod_{t=1}^T (1 + R_t) \quad \text{vs.} \quad \sum_{t=1}^T R_t$$
+This operation is entirely smooth and allows gradients to flow directly back to the underlying firm characteristics.
 
-In long-horizon backtests spanning decades:
 
-1. **Arithmetic PnL summation** artificially penalizes earlier regimes and inflates late-stage volatility spikes due to scale shifts, obscuring compounding effects.
-2. In the presence of high leverage and daily rebalancing common to high-turnover StatArb, arithmetic aggregation conceals path dependency and geometric drag ($\mu - \frac{1}{2}\sigma^2$).
+* **LongConv Sequence Modeling:** The extracted residual returns are fed into a LongConv sequence model to predict arbitrage weights: 
+$\omega_{t-1}^{\text{port}} = \text{LongConv}_\theta(\epsilon_{(t-s, t-1)})$. This layer bypasses the exploding/vanishing gradients of recurrent networks 
+by utilizing the FFT convolution theorem for $O(T \log T)$ complexity. Additionally, the convolution kernel $\mathcal{K}$ is regularized using a 
+sub-differentiable element-wise Squash operator:
 
-### Post-2010 Structural Alpha Decay & The 2020 Shock
 
-Examining the performance curves across regimes reveals two expected, yet critical realities:
-
-```
-Cross-Sectional StatArb Efficiency Across Regimes:
-
-[Pre-2007]   ====================> High Sharpe, fast mean-reversion, low crowding
-[2007-2010]  --------/\/\--------> 2007 Quant Quake disruption, GFC liquidity squeeze
-[Post-2010]  ========> Slow decay: HFT latency compression, quant crowding, ZIRP
-[2020 Shock] -------\/-----------> Extreme factor rotation (momentum crash, COVID divergence)
-
-```
-
-1. **Post-2010 Margin Compression:** Post-2010 Sharpe ratios exhibit noticeable downward drift. As quantitative equity market-neutral (QEMN) capital expanded and electronic liquidity providers compressed execution spreads, classical cross-sectional reversion on rolling backward-looking residuals became crowded.
-2. **The 2020 Reversal Drawdown:** The pronounced drawdown around Q1-Q2 2020 was a market-wide phenomenon:
-* Extreme macro-policy divergence caused violent factor rotations (e.g., dramatic momentum-to-value reversals and massive retail trading volume spikes).
-* Covariance matrices derived from recent backward-looking windows misestimated tail correlations, rendering "residualized" portfolios temporarily directional.
+$$\mathcal{K} = \text{sign}(\mathcal{K}) \max(\vert{}\mathcal{K}\vert{} - \lambda_{\text{squash}}, 0)$$
 
 
 
----
+This acts as a proximal step for an $L_1$ penalty, smoothly shrinking small kernel weights to zero.
 
-## 4. The Blind Spot: Backward-Looking Filters vs. Forward-Looking Alpha
 
-The residualization equation isolates idiosyncratic noise by subtracting systematic variation:
+* **Friction-Aware Dual Objective:** The network's loss function jointly optimizes explained variance and the strategy's net Sharpe ratio after transaction 
+costs. The net portfolio return explicitly deducts an $L_1$ transaction cost ($5$ basis points) and a shorting cost ($1$ basis point):
 
-$$\epsilon_t = r_t - \hat{r}_t^{\text{systematic}}$$
 
-However, the architecture relies on **backward-looking information** (historical rolling covariance, trailing return momentum, and past volume signatures) to compute the attention map.
 
-### The Problem of Factor Leakage
+$$R_{t, \text{net}}^{\text{port}} = R_t^{\text{port}} - \left( 0.0005 \times \Vert{}\omega_t - \omega_{t-1}\Vert{}_1 + 0.0001 \times \Vert{}\max(-\omega_t, 0)\Vert{}_1 \right)$$
 
-When a structural break occurs, the model's learned projection matrix $P_t$ lags real-time risk factor re-alignments. As a result:
 
-* True forward-looking systematic shocks are mistakenly categorized as idiosyncratic residuals $\epsilon_t$.
-* The StatArb execution layer interprets this sudden divergence as an "arbitrage opportunity" and doubles down on a losing position (e.g., catching falling knives during fundamental regime shifts).
+While the absolute value ($L_1$ norm) and the $\max$ operator are not continuously differentiable at zero, they are *sub-differentiable*. 
+This allows the model to continuously penalize high-turnover churn during training, fundamentally shaping the upstream attention factors to 
+discover signals that survive real-world execution.
 
-### Proposed Extension: Decoupling Forward-Looking Alpha Factors
 
-To make this architecture robust in live production, one must explicitly expand the residualization pipeline to strip out **forward-looking alpha proxies** before executing the mean-reversion loop:
+## Empirical Results
 
-$$r_t = \underbrace{B_t f_t}_{\text{Backward Risk Factors}} + \underbrace{\Gamma_t \alpha_t^{\text{fwd}}}_{\text{Forward Structural Drift}} + \underbrace{\xi_t}_{\text{True Residual}}$$
+A methodological issue in reporting the paper's performance I'd take is the choice of AUM curve rather than cumlog returns standard equity log-wealth curves.
+The pnl visuals brush over the fact that stat arb efficiency have undergone significant shifts, examplified by the decay post GFC and the Covid shock. Furthermore,
+funds are moving away from factor premia and incorporating more forward information than ever. The proposed architecture is insightful and elegant, but to further 
+address the underperformance in recent years, a valuable step to take would be to explicitly expand the residualization pipeline to strip out forward-looking alpha 
+proxies in addition to existing backward-looking risk factors before executing the mean-reversion loop.
 
-```
-Raw Return (r_t)
-   │
-   ├── [Attention Risk Residualizer (M_t)] ───────► Removes Systematic Factor Risk
-   │
-   └── Intermediate Residual (\hat{ϵ}_t)
-         │
-         ├── [Forward-Looking Alpha Screen (\Gamma_t \alpha_t)] ──► Strips Earnings Surprise,
-         │                                                         Analyst Revisions, News NLP
-         └── True StatArb Residual (\xi_t) ─────────────► Pure Mean-Reversion Engine (OU/Kalman)
-
-```
-
-By explicitly conditioning the residualizer on forward-looking expectations (e.g., consensus earnings revisions, supply-chain graphs, implied volatility skews), the model avoids betting on convergence when an asset is undergoing fundamental repricing.
-
----
-
-## 5. Concluding Takeaway
-
-*Attention Factors for Statistical Arbitrage* provides a principled, mathematically coherent framework for deep learning in quant finance. By replacing heuristics with the structural rigor of the **exposure-weight duality ($B^\top F = I_K$)**, it shows how modern sequence models can revitalize the Barra multi-factor paradigm.
-
-Nonetheless, practitioners translating this methodology to live production should account for arithmetic reporting artifacts, anticipate post-2010 crowding dynamics, and enrich backward-looking residualization with explicit forward-looking alpha filters to prevent regime-change drawdowns.
