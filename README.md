@@ -11,14 +11,14 @@ npm ci
 npm run dev
 ```
 
-Open http://localhost:3000/personal-website/. The build script uses Next.js’s webpack builder. For production validation: `npm run build`; the generated `out/` folder is the static website. `npm start` is not supported with static export. Run `npm run typecheck` to check TypeScript.
+Open http://localhost:3000/. The build script uses Next.js’s webpack builder. For production validation: `npm run build`; the generated `out/` folder is the static website. `npm start` is not supported with static export. Run `npm run typecheck` to check TypeScript.
 
 ## Customize
 
 - Update `lib/site.ts` and the introduction in `app/page.tsx` with your name, bio, and contact URLs. Replace the placeholder resume at `/resume` or point its link to your PDF in `public/`.
 - Add MDX files to `content/projects`, `content/papers`, and `content/writing`. A filename becomes its URL slug. Category pages include every entry, sorted by date; the homepage shows up to two entries marked `featured: true`.
 - Keep only trusted, locally authored MDX: MDX supports executable JSX and is not a safe format for visitor-submitted content.
-- Set `NEXT_PUBLIC_SITE_URL` in `.env.local` to the full canonical site URL, including `/personal-website`. It defaults to `https://minty-chocolate.github.io/personal-website`. Restart/rebuild after changing it.
+- Set `NEXT_PUBLIC_SITE_URL` in `.env.local` to the full canonical site URL, without a repository path prefix. It defaults to `https://minty-chocolate.github.io`. Restart/rebuild after changing it.
 
 ## Frontmatter
 
@@ -87,13 +87,13 @@ Accessibility includes a skip link, visible keyboard focus, semantic landmarks, 
 
 ## GitHub Pages
 
-The site exports to `out/` with the `/personal-website` base path and trailing
-slashes. Internal `next/link` links receive the prefix automatically; card and
-MDX images receive it through `lib/paths.ts`. Keep content image paths as `/images/...`.
+The site exports to `out/` at the domain root with trailing
+slashes. Internal `next/link` links and public assets use root-relative paths.
+`lib/paths.ts` keeps the base path empty for the GitHub user site. Keep content image paths as `/images/...`.
 All three detail route categories use `generateStaticParams()` and reject unknown slugs.
 
 When ready, set the repository **Settings → Pages → Build and deployment → Source**
 to **GitHub Actions**. After you commit and push to `main`,
 `.github/workflows/deploy.yml` installs dependencies, builds, and deploys `out/`
-to https://minty-chocolate.github.io/personal-website/. No deployment is performed
+to https://minty-chocolate.github.io/. No deployment is performed
 by local builds.

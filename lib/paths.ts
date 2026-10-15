@@ -1,4 +1,4 @@
-export const basePath = "/personal-website";
+export const basePath = "";
 
 // Next.js prefixes Link URLs automatically; public asset URLs need this explicitly.
 export function withBasePath(url: string): string {

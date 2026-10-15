@@ -8,7 +8,7 @@ export const site = {
   resume: "/resume",
   resumeHeadline: "Quantitative research · Software engineering",
   interests: "Statistical learning, portfolio construction, reproducible research, and scientific computing.",
-  url: (process.env.NEXT_PUBLIC_SITE_URL || "https://minty-chocolate.github.io/personal-website").replace(/\/$/, ""),
+  url: (process.env.NEXT_PUBLIC_SITE_URL || "https://minty-chocolate.github.io").replace(/\/$/, ""),
   email: "hello@example.com",
   github: "https://github.com/Minty-Chocolate",
   linkedin: "https://www.linkedin.com/in/shaofan-wu/",
