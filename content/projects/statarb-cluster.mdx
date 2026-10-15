@@ -1,0 +1,17 @@
+---
+title: "Clustering Algorithm and Statistical Arbitrage"
+description: "Which ML algorithm wins"
+date: "2026-09-18"
+tags: ["Clustering", "Statistical Arbitrage"]
+featured: true
+---
+
+In the paper **Quantifying the Contributions of Clustering in Statistical Arbitrage**, a plethora of ML clustering algorithms are applied to determine their 
+usefulness in statistical arbitrage. The setup is all the same except the clustering module in the pipeline. All other configurations including signal and 
+portfolio construction are kept minimal and simple to isolate the effect. It is a clean and somewhat simplistic experiment to compare clustering algorithms 
+applied to financial markets. From the results presented in the paper, it seemed that K-means is the clear winner. 
+
+I tested the algorithm from Algorithms for Learning Graphs in Financial Markets, which is a promising graph clustering algorithm specifically tailored for 
+financial data and the results surpassed that of K-means, with higher returns, lower volatility and better monotonicity.
+
+https://github.com/Minty-Chocolate/statarb-cluster
